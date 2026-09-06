@@ -1,0 +1,56 @@
+name: spotlocal
+description: Offline-first Android music player replicating Spotify UI with explicit scoped folder isolation.
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: '>=3.10.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # Playback & Audio Service
+  just_audio: ^0.9.36
+  audio_service: ^0.18.12
+
+  # Metadata Parser & Dynamic Theming
+  metadata_god: ^1.0.0
+  audiotags: ^1.4.0
+  palette_generator: ^0.3.3+3
+  
+  # Database & File System
+  sqflite: ^2.3.0
+  path_provider: ^2.1.2
+  path: ^1.9.0
+  crypto: ^3.0.3
+  file_picker: ^8.0.0
+  permission_handler: ^11.3.1
+  
+  # State Management
+  flutter_riverpod: ^2.5.1
+  
+  # UI Icons / Formatting
+  cupertino_icons: ^1.0.6
+
+dependency_overrides:
+  flutter_rust_bridge: 2.11.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+  flutter_launcher_icons: ^0.13.1
+
+flutter_launcher_icons:
+  android: "ic_launcher"
+  image_path: "assets/logo.png"
+  adaptive_icon_background: "#121212"
+  adaptive_icon_foreground: "assets/logo.png"
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/logo.png
