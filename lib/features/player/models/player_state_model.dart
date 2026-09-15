@@ -14,6 +14,7 @@ class SpotPlayerState {
   final int? currentIndex;
   final bool shuffleModeEnabled;
   final AudioServiceRepeatMode repeatMode;
+  final double speed;
 
   const SpotPlayerState({
     this.currentTrack,
@@ -28,6 +29,7 @@ class SpotPlayerState {
     this.currentIndex,
     this.shuffleModeEnabled = false,
     this.repeatMode = AudioServiceRepeatMode.none,
+    this.speed = 1.0,
   });
 
   SpotPlayerState copyWith({
@@ -44,6 +46,7 @@ class SpotPlayerState {
     int? currentIndex,
     bool? shuffleModeEnabled,
     AudioServiceRepeatMode? repeatMode,
+    double? speed,
   }) {
     return SpotPlayerState(
       currentTrack: currentTrack ?? this.currentTrack,
@@ -58,6 +61,7 @@ class SpotPlayerState {
       currentIndex: currentIndex ?? this.currentIndex,
       shuffleModeEnabled: shuffleModeEnabled ?? this.shuffleModeEnabled,
       repeatMode: repeatMode ?? this.repeatMode,
+      speed: speed ?? this.speed,
     );
   }
 }

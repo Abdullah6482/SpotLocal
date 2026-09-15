@@ -208,6 +208,11 @@ class SpotAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     }
   }
 
+  @override
+  Future<void> setSpeed(double speed) async {
+    await _player.setSpeed(speed);
+  }
+
   /// Sets a new queue of tracks and starts playback at [initialIndex].
   Future<void> playTracks(List<Track> tracks, {int initialIndex = 0}) async {
     if (tracks.isEmpty) return;

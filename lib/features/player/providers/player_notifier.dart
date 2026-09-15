@@ -70,6 +70,7 @@ class PlayerNotifier extends StateNotifier<SpotPlayerState> {
           currentIndex: pbState.queueIndex,
           shuffleModeEnabled: pbState.shuffleMode == AudioServiceShuffleMode.all,
           repeatMode: pbState.repeatMode,
+          speed: pbState.speed,
         );
       }),
     );
@@ -197,6 +198,11 @@ class PlayerNotifier extends StateNotifier<SpotPlayerState> {
         break;
     }
     await _audioHandler.setRepeatMode(nextMode);
+  }
+
+  /// Sets audio playback speed (e.g. 0.5x, 1.0x, 1.25x, 1.5x, 2.0x).
+  Future<void> setSpeed(double speed) async {
+    await _audioHandler.setSpeed(speed);
   }
 
   @override
