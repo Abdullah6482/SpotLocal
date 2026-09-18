@@ -23,7 +23,7 @@ String normalizeFolderPath(String rawPath) {
 
 class DbHelper {
   static const String _dbName = 'spotlocal.db';
-  static const int _dbVersion = 2;
+  static const int _dbVersion = 3;
 
   static final DbHelper _instance = DbHelper._internal();
   factory DbHelper() => _instance;
@@ -52,6 +52,17 @@ class DbHelper {
         if (oldVersion < 2) {
           try {
             await db.execute('ALTER TABLE tracks ADD COLUMN track_number INTEGER');
+          } catch (_) {}
+        }
+        if (oldVersion < 3) {
+          try {
+            await db.execute('''
+              CREATE TABLE IF NOT EXISTS favorites (
+                track_id INTEGER PRIMARY KEY,
+                added_at INTEGER NOT NULL,
+                FOREIGN KEY (track_id) REFERENCES tracks (id) ON DELETE CASCADE
+              )
+            ''');
           } catch (_) {}
         }
       },
@@ -110,9 +121,19 @@ class DbHelper {
       )
     ''');
 
+    // 5. favorites table
+    await db.execute('''
+      CREATE TABLE favorites (
+        track_id INTEGER PRIMARY KEY,
+        added_at INTEGER NOT NULL,
+        FOREIGN KEY (track_id) REFERENCES tracks (id) ON DELETE CASCADE
+      )
+    ''');
+
     // Indices for performance
     await db.execute('CREATE INDEX idx_tracks_folder ON tracks(folder_path)');
     await db.execute('CREATE INDEX idx_tracks_file_path ON tracks(file_path)');
+    await db.execute('CREATE INDEX idx_favorites_added ON favorites(added_at)');
   }
 
   // ===========================================================================
@@ -368,6 +389,60 @@ class DbHelper {
       where: 'playlist_id = ? AND track_id = ?',
       whereArgs: [playlistId, trackId],
     );
+  }
+
+  // ===========================================================================
+  // FAVORITES CRUD
+  // ===========================================================================
+
+  /// Toggles favorite status for a track. Returns true if now favorite, false if removed.
+  Future<bool> toggleFavorite(int trackId) async {
+    final db = await database;
+    final exists = await isFavorite(trackId);
+    if (exists) {
+      await db.delete('favorites', where: 'track_id = ?', whereArgs: [trackId]);
+      return false;
+    } else {
+      await db.insert(
+        'favorites',
+        {
+          'track_id': trackId,
+          'added_at': DateTime.now().millisecondsSinceEpoch,
+        },
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+      return true;
+    }
+  }
+
+  /// Checks if a track is marked as favorite.
+  Future<bool> isFavorite(int trackId) async {
+    final db = await database;
+    final maps = await db.query(
+      'favorites',
+      where: 'track_id = ?',
+      whereArgs: [trackId],
+      limit: 1,
+    );
+    return maps.isNotEmpty;
+  }
+
+  /// Retrieves all favorited tracks ordered by date added descending.
+  Future<List<Track>> getFavoriteTracks() async {
+    final db = await database;
+    final maps = await db.rawQuery('''
+      SELECT t.* FROM tracks t
+      INNER JOIN favorites f ON t.id = f.track_id
+      ORDER BY f.added_at DESC
+    ''');
+    return maps.map((map) => Track.fromMap(map)).toList();
+  }
+
+  /// Retrieves the set of all favorited track IDs for fast in-memory lookups.
+  Future<Set<int>> getFavoriteTrackIds() async {
+    final db = await database;
+    final maps = await db.query('favorites', columns: ['track_id']);
+    return maps.map((row) => row['track_id'] as int).toSet();
   }
 
   /// Closes database connection.

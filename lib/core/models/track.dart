@@ -10,6 +10,7 @@ class Track {
   final String fileHash;
   final String? artworkPath;
   final DateTime dateAdded;
+  final bool isFavorite;
 
   const Track({
     this.id,
@@ -23,6 +24,7 @@ class Track {
     required this.fileHash,
     this.artworkPath,
     required this.dateAdded,
+    this.isFavorite = false,
   });
 
   Map<String, dynamic> toMap() {
@@ -54,6 +56,7 @@ class Track {
       fileHash: map['file_hash'] as String,
       artworkPath: map['artwork_path'] as String?,
       dateAdded: DateTime.fromMillisecondsSinceEpoch(map['date_added'] as int),
+      isFavorite: map['is_favorite'] == 1 || map['is_favorite'] == true,
     );
   }
 
@@ -69,6 +72,7 @@ class Track {
     String? fileHash,
     String? artworkPath,
     DateTime? dateAdded,
+    bool? isFavorite,
   }) {
     return Track(
       id: id ?? this.id,
@@ -82,6 +86,7 @@ class Track {
       fileHash: fileHash ?? this.fileHash,
       artworkPath: artworkPath ?? this.artworkPath,
       dateAdded: dateAdded ?? this.dateAdded,
+      isFavorite: isFavorite ?? this.isFavorite,
     );
   }
 
