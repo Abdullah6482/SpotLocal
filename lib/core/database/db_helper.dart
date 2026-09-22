@@ -1,6 +1,7 @@
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 import '../models/models.dart';
+import 'recently_played_dao.dart';
 
 /// Helper function to normalize Android storage and SAF directory paths.
 String normalizeFolderPath(String rawPath) {
@@ -23,7 +24,7 @@ String normalizeFolderPath(String rawPath) {
 
 class DbHelper {
   static const String _dbName = 'spotlocal.db';
-  static const int _dbVersion = 3;
+  static const int _dbVersion = 4;
 
   static final DbHelper _instance = DbHelper._internal();
   factory DbHelper() => _instance;
@@ -63,6 +64,11 @@ class DbHelper {
                 FOREIGN KEY (track_id) REFERENCES tracks (id) ON DELETE CASCADE
               )
             ''');
+          } catch (_) {}
+        }
+        if (oldVersion < 4) {
+          try {
+            await RecentlyPlayedDao.createTable(db);
           } catch (_) {}
         }
       },
@@ -134,6 +140,9 @@ class DbHelper {
     await db.execute('CREATE INDEX idx_tracks_folder ON tracks(folder_path)');
     await db.execute('CREATE INDEX idx_tracks_file_path ON tracks(file_path)');
     await db.execute('CREATE INDEX idx_favorites_added ON favorites(added_at)');
+
+    // 6. recently_played table
+    await RecentlyPlayedDao.createTable(db);
   }
 
   // ===========================================================================
@@ -443,6 +452,28 @@ class DbHelper {
     final db = await database;
     final maps = await db.query('favorites', columns: ['track_id']);
     return maps.map((row) => row['track_id'] as int).toSet();
+  }
+
+  // ===========================================================================
+  // RECENTLY PLAYED
+  // ===========================================================================
+
+  /// Records a track play into listening history.
+  Future<void> recordRecentPlay(int trackId) async {
+    final db = await database;
+    await RecentlyPlayedDao.recordPlay(db, trackId);
+  }
+
+  /// Retrieves list of recently played tracks.
+  Future<List<Track>> getRecentlyPlayedTracks() async {
+    final db = await database;
+    return await RecentlyPlayedDao.getRecentlyPlayed(db);
+  }
+
+  /// Clears user listening history.
+  Future<void> clearRecentlyPlayed() async {
+    final db = await database;
+    await RecentlyPlayedDao.clearHistory(db);
   }
 
   /// Closes database connection.
