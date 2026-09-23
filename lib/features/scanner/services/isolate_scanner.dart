@@ -8,14 +8,10 @@ import 'package:path/path.dart' as p;
 import '../../../core/database/db_helper.dart';
 import '../../../core/models/track.dart';
 import '../models/scan_result.dart';
+import '../utils/audio_file_validator.dart';
 
 class IsolateScanner {
-  static const Set<String> _allowedExtensions = {
-    '.mp3',
-    '.flac',
-    '.m4a',
-    '.wav',
-  };
+  static Set<String> get _allowedExtensions => AudioFileValidator.supportedExtensions;
 
   /// Entry point executed inside the spawned background Dart Isolate.
   @pragma('vm:entry-point')
@@ -219,7 +215,7 @@ class IsolateScanner {
             '${file.path}_${stat.modified.millisecondsSinceEpoch}_${stat.size}'))
         .toString();
 
-    String title = p.basenameWithoutExtension(file.path);
+    String title = AudioFileValidator.deriveFallbackTitle(file.path);
     String? artist;
     String? album;
     int? trackNumber;
